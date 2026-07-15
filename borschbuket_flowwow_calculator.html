@@ -201,21 +201,30 @@
   .tariff-note{font-size:11px;color:var(--text-muted);white-space:nowrap;}
 
   .card-body{display:block;}
-  .fields-area{display:flex;flex-direction:column;}
+  .fields-area{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:repeat(7,auto);
+    grid-auto-flow:column;
+    align-items:stretch;
+  }
+  @media (max-width:820px){
+    .fields-area{grid-template-columns:1fr;grid-auto-flow:row;}
+  }
 
-  /* Полноширинная плашка-заголовок блока */
-  .side-row{border-bottom:1px solid var(--border);}
-  .side-row:last-child{border-bottom:none;}
-  .side-row.shop-row{background:var(--panel-shop);}
-  .side-row.flowwow-row{background:var(--panel-flowwow);}
-  .side-label{
+  .col-cell{padding:16px 18px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;}
+  .col-cell.shop{background:var(--panel-shop);border-right:1px solid var(--border);}
+  .col-cell.flowwow{background:var(--panel-flowwow);}
+  @media (max-width:820px){
+    .col-cell.shop{border-right:none;}
+  }
+  .col-cell.col-label{
     font-family:var(--font-head);font-weight:800;font-size:13px;
     letter-spacing:.08em;text-transform:uppercase;padding:9px 18px;color:#fff;
+    display:block;
   }
-  .side-row.shop-row .side-label{background:var(--green);}
-  .side-row.flowwow-row .side-label{background:var(--bordo);}
-
-  .side-content{padding:16px 18px 18px;display:flex;flex-direction:column;gap:14px;}
+  .col-cell.col-label.shop{background:var(--green);border-right:1px solid var(--green-dark);}
+  .col-cell.col-label.flowwow{background:var(--bordo);}
 
   .fields-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
   .field-block{display:flex;flex-direction:column;gap:5px;width:100%;}
@@ -267,31 +276,31 @@
   .reset-discount{font-size:13px;padding:6px 9px;line-height:1;flex:none;}
 
   /* Привязка акцентных цветов к теме блока: зелёный — свой магазин, бордовый — Flowwow */
-  .side-row.shop-row .val-emph,
-  .side-row.shop-row input.field-num.val-emph-input,
-  .side-row.shop-row .value-box,
-  .side-row.shop-row .discount-price-display,
-  .side-row.shop-row .tax-total .val-emph{ color:var(--green); }
-  .side-row.shop-row input.field-num.val-emph-input:focus,
-  .side-row.shop-row .discount-input-row input.field-num:focus{ border-color:var(--green); }
-  .side-row.shop-row .discount-input-row input.field-num{ color:var(--green-dark); }
-  .side-row.shop-row .tax-total{ border-left-color:var(--green); }
-  .side-row.shop-row .tax-total label{ color:var(--green-dark); }
+  .col-cell.shop .val-emph,
+  .col-cell.shop input.field-num.val-emph-input,
+  .col-cell.shop .value-box,
+  .col-cell.shop .discount-price-display,
+  .col-cell.shop .tax-total .val-emph{ color:var(--green); }
+  .col-cell.shop input.field-num.val-emph-input:focus,
+  .col-cell.shop .discount-input-row input.field-num:focus{ border-color:var(--green); }
+  .col-cell.shop .discount-input-row input.field-num{ color:var(--green-dark); }
+  .col-cell.shop .tax-total{ border-left-color:var(--green); }
+  .col-cell.shop .tax-total label{ color:var(--green-dark); }
 
-  .side-row.flowwow-row .discount-input-row input.field-num{ color:var(--bordo-dark); }
-  .side-row.flowwow-row .discount-input-row input.field-num:focus{ border-color:var(--bordo); }
+  .col-cell.flowwow .discount-input-row input.field-num{ color:var(--bordo-dark); }
+  .col-cell.flowwow .discount-input-row input.field-num:focus{ border-color:var(--bordo); }
 
   /* Налог: УСН 6% + ПФР 1% = Всего налог 7% */
   .tax-block{
     background:var(--panel-alt);border:1px solid var(--border);border-radius:8px;
-    padding:12px 16px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;
+    padding:12px 16px;display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;gap:16px;
   }
-  .tax-block .field-block{width:auto;min-width:110px;}
+  .tax-block .field-block{width:auto;min-width:0;}
   .tax-total{
-    margin-left:auto;padding-left:16px;border-left:1px dashed var(--border);
-    display:flex;flex-direction:column;gap:4px;
+    padding-left:16px;border-left:1px dashed var(--border);
+    display:flex;flex-direction:column;gap:4px;min-width:0;
   }
-  .tax-total label{font-size:11.5px;color:var(--bordo-dark);font-weight:800;text-transform:uppercase;letter-spacing:.03em;}
+  .tax-total label{font-size:11.5px;color:var(--bordo-dark);font-weight:800;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;}
 
   /* Единый блок расходов Flowwow: комиссии в одну строку + общая доля расходов справа внизу */
   .expenses-wrap{border:1px solid var(--border);border-radius:8px;background:var(--panel-alt);overflow:hidden;}
@@ -318,19 +327,15 @@
   }
   .expense-total-footer .val-emph{font-size:19px;}
 
-  /* Итог блока: цена продажи + маржа, затем сумма прибыли — внизу справа */
-  .row-total{
-    display:flex;flex-direction:column;align-items:flex-end;gap:8px;
-    padding-top:6px;
-  }
-  .row-total .totals-line{display:flex;align-items:flex-start;gap:22px;flex-wrap:wrap;justify-content:flex-end;}
-  .row-total .totals-item{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
-  .row-total .totals-item label{
+  /* Итог блока: цена продажи + маржа + сумма прибыли — отдельная строка сетки, одинаковая высота */
+  .totals-line{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:start;gap:14px;}
+  .totals-item{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;}
+  .totals-item label{
     font-family:var(--font-head);font-size:10.5px;font-weight:800;letter-spacing:.05em;
     text-transform:uppercase;color:var(--text-muted);
   }
-  .row-total .totals-value{
-    display:inline-flex;align-items:center;justify-content:flex-end;
+  .totals-value{
+    display:inline-flex;align-items:center;justify-content:center;
     min-height:30px;line-height:1;box-sizing:border-box;
   }
   .profit-warn{
@@ -450,22 +455,8 @@
   </div>
 
   <div class="toolbar">
-    <input type="text" id="searchInput" placeholder="Поиск по названию товара…">
-    <select id="categoryFilter" class="field-select" style="max-width:220px;"></select>
-    <select id="sortSelect" class="field-select" style="max-width:240px;">
-      <option value="none">Без сортировки</option>
-      <option value="name-asc">Название A→Я</option>
-      <option value="name-desc">Название Я→A</option>
-      <option value="price-asc">Продажная цена Flowwow ↑</option>
-      <option value="price-desc">Продажная цена Flowwow ↓</option>
-      <option value="marginShop-asc">Маржа (свой магазин) ↑</option>
-      <option value="marginShop-desc">Маржа (свой магазин) ↓</option>
-      <option value="margin-asc">Маржа (Flowwow) ↑</option>
-      <option value="margin-desc">Маржа (Flowwow) ↓</option>
-    </select>
     <div class="spacer"></div>
     <button class="btn" id="exportBtn">⭳ Экспорт в CSV</button>
-    <button class="btn primary" id="addBtn">+ Добавить товар</button>
   </div>
 
   <div id="cardsList"></div>
@@ -537,11 +528,11 @@ function defaultBonusFor(categoryName){
 }
 
 /* ===================== Глобальные настройки ===================== */
-let globalCity = 'Москва';
+let globalCity = 'Группа B';
 let globalWowpass = true;
-let globalDelivery = 'full';
+let globalDelivery = 'maxi';
 
-/* ===================== Состояние товаров ===================== */
+/* ===================== Состояние товара (один товар) ===================== */
 let products = [
   {
     id: crypto.randomUUID(),
@@ -552,32 +543,9 @@ let products = [
     growthPct: 3,
     bonusPct: 3,
     manualPrice:false, priceOverride:null
-  },
-  {
-    id: crypto.randomUUID(),
-    name: "Корзина «Праздничная»",
-    category: "Цветы и подарки",
-    cost: 2500,
-    sellPrice: 6500,
-    growthPct: 2,
-    bonusPct: 3,
-    manualPrice:false, priceOverride:null
-  },
-  {
-    id: crypto.randomUUID(),
-    name: "Клубника в шоколаде, набор",
-    category: "Кондитерские и пекарни",
-    cost: 900,
-    sellPrice: 2400,
-    growthPct: 0,
-    bonusPct: 0,
-    manualPrice:false, priceOverride:null
   }
 ];
 
-let searchTerm = "";
-let categoryFilterVal = "all";
-let sortVal = "none";
 
 /* ===================== Расчёт ===================== */
 function compute(p){
@@ -763,13 +731,7 @@ document.getElementById('globalDelivery').addEventListener('change', e=>{
   renderCards();
 });
 
-/* ===================== Рендер фильтра категорий ===================== */
-function renderCategoryFilter(){
-  const el = document.getElementById('categoryFilter');
-  el.innerHTML = `<option value="all">Все категории</option>` +
-    CATEGORIES.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
-  el.value = categoryFilterVal;
-}
+/* ===================== Опции категорий/доставки ===================== */
 function categoryOptions(selected){
   return CATEGORIES.map(c=>`<option value="${c.name}" ${c.name===selected?'selected':''}>${c.name}</option>`).join('');
 }
@@ -796,263 +758,231 @@ function cardHTML(p){
     </div>
     <div class="card-body">
       <div class="fields-area">
-        <div class="side-row shop-row">
-          <div class="side-label">Свой магазин</div>
-          <div class="side-content">
-            <div class="fields-row">
-              <div class="field-block">
-                <label>Себестоимость</label>
-                <input class="field-num val-emph-input" type="number" min="0" value="${p.cost}" data-field="cost" data-id="${p.id}">
-              </div>
-              <div class="field-block">
-                <label>Продажная цена</label>
-                <input class="field-num val-emph-input" type="number" min="0" value="${p.sellPrice}" data-field="sellPrice" data-id="${p.id}">
-              </div>
+        <div class="col-cell col-label shop">Свой магазин</div>
+        <div class="col-cell shop">
+          <div class="fields-row">
+            <div class="field-block">
+              <label>Себестоимость</label>
+              <input class="field-num val-emph-input" type="number" min="0" value="${p.cost}" data-field="cost" data-id="${p.id}">
             </div>
-            <div class="fields-row">
-              <div class="field-block">
-                <label>Скидка</label>
-                <div class="discount-wrap">
-                  <div class="discount-stack">
-                    <div class="discount-input-row">
-                      <input class="field-num" type="number" min="0" max="100" placeholder="0"
-                             id="shopDiscPct-${p.id}" data-field="shopDiscountPct" data-id="${p.id}"
-                             value="${p.shopDiscountMode==='pct' && p.shopDiscountPct!=null ? p.shopDiscountPct : ''}">
-                      <span class="discount-unit">%</span>
-                    </div>
-                    <div class="discount-input-row">
-                      <input class="field-num" type="number" min="0" placeholder="0"
-                             id="shopDiscPrice-${p.id}" data-field="shopDiscountPrice" data-id="${p.id}"
-                             value="${p.shopDiscountMode==='price' && p.shopDiscountPrice!=null ? Math.round(p.shopDiscountPrice) : ''}">
-                      <span class="discount-unit">₽</span>
-                    </div>
-                  </div>
-                  <button class="btn ghost small reset-discount" data-action="resetShopDiscount" data-id="${p.id}"
-                          id="resetShopDisc-${p.id}" title="Сбросить скидку" style="display:${c.shopHasDiscount?'inline-flex':'none'}">✕</button>
-                </div>
-              </div>
-              <div class="field-block">
-                <label>Цена со скидкой</label>
-                <span class="value-box discount-price-display" id="priceShopDiscDisplay-${p.id}">${fmtRub(c.effectiveShopPrice)}</span>
-              </div>
-            </div>
-            <div class="tax-block">
-              <div class="field-block">
-                <label>УСН 6%</label>
-                <span class="computed-val val-emph" id="usn6Own-${p.id}">${fmtRub(c.usn6OwnRub)}</span>
-              </div>
-              <div class="field-block">
-                <label>ПФР 1%</label>
-                <span class="computed-val val-emph" id="pfr1Own-${p.id}">${fmtRub(c.pfr1OwnRub)}</span>
-              </div>
-              <div class="tax-total">
-                <label>Всего налог 7%</label>
-                <span class="val-emph" id="usnOwn-${p.id}">${fmtRub(c.usnOwnRub)}</span>
-              </div>
-            </div>
-            <div class="row-total">
-              <div class="totals-line">
-                <div class="totals-item">
-                  <label>Продажная цена</label>
-                  <span class="val-emph totals-value" id="priceShopTotal-${p.id}">${fmtRub(c.effectiveShopPrice)}</span>
-                </div>
-                <div class="totals-item">
-                  <label>Маржа</label>
-                  <span class="badge totals-value ${shopClass}" id="marginShop-${p.id}">${fmtPct(c.marginShopPct)}</span>
-                </div>
-                <div class="totals-item">
-                  <label>Сумма прибыли</label>
-                  <span class="badge big totals-value ${shopClass}" id="profitShop-${p.id}">${fmtRub(c.profitOwnShop)}</span>
-                </div>
-              </div>
+            <div class="field-block">
+              <label>Продажная цена</label>
+              <input class="field-num val-emph-input" type="number" min="0" value="${p.sellPrice}" data-field="sellPrice" data-id="${p.id}">
             </div>
           </div>
         </div>
-        <div class="side-row flowwow-row">
-          <div class="side-label">Flowwow</div>
-          <div class="side-content">
-            <div class="fields-row">
-              <div class="field-block">
-                <label>Себестоимость</label>
-                <span class="value-box" id="costFlowwow-${p.id}">${fmtRub(c.cost)}</span>
-              </div>
-              <div class="field-block">
-                <label>Продажная цена</label>
-                <div class="price-cell">
-                  <input class="field-num price-input val-emph-input ${c.useManual?'manual':''}" type="number" min="0" step="1"
-                         id="priceInput-${p.id}" data-field="priceOverride" data-id="${p.id}"
-                         value="${c.priceOnFlowwow!=null ? Math.round(c.priceOnFlowwow) : ''}"
-                         placeholder="${(!c.useManual && c.overLimit) ? 'вручную' : ''}">
-                  <button class="btn ghost small reset-price" data-action="resetPrice" data-id="${p.id}"
-                          id="resetBtn-${p.id}" title="Вернуть расчётную цену" style="display:${c.useManual?'inline-flex':'none'}">↺</button>
-                </div>
-                <div class="price-note" id="priceNote-${p.id}">${priceNoteHTML(c)}</div>
-              </div>
-            </div>
-            <div class="fields-row">
-              <div class="field-block">
-                <label>Скидка</label>
-                <div class="discount-wrap">
-                  <div class="discount-stack">
-                    <div class="discount-input-row">
-                      <input class="field-num" type="number" min="0" max="100" placeholder="0"
-                             id="flowwowDiscPct-${p.id}" data-field="flowwowDiscountPct" data-id="${p.id}"
-                             value="${p.flowwowDiscountMode==='pct' && p.flowwowDiscountPct!=null ? p.flowwowDiscountPct : ''}">
-                      <span class="discount-unit">%</span>
-                    </div>
-                    <div class="discount-input-row">
-                      <input class="field-num" type="number" min="0" placeholder="0"
-                             id="flowwowDiscPrice-${p.id}" data-field="flowwowDiscountPrice" data-id="${p.id}"
-                             value="${p.flowwowDiscountMode==='price' && p.flowwowDiscountPrice!=null ? Math.round(p.flowwowDiscountPrice) : ''}">
-                      <span class="discount-unit">₽</span>
-                    </div>
+        <div class="col-cell shop">
+          <div class="fields-row">
+            <div class="field-block">
+              <label>Скидка</label>
+              <div class="discount-wrap">
+                <div class="discount-stack">
+                  <div class="discount-input-row">
+                    <input class="field-num" type="number" min="0" max="100" placeholder="0"
+                           id="shopDiscPct-${p.id}" data-field="shopDiscountPct" data-id="${p.id}"
+                           value="${p.shopDiscountMode==='pct' && p.shopDiscountPct!=null ? p.shopDiscountPct : ''}">
+                    <span class="discount-unit">%</span>
                   </div>
-                  <button class="btn ghost small reset-discount" data-action="resetFlowwowDiscount" data-id="${p.id}"
-                          id="resetFlowwowDisc-${p.id}" title="Сбросить скидку" style="display:${p.flowwowDiscountMode?'inline-flex':'none'}">✕</button>
+                  <div class="discount-input-row">
+                    <input class="field-num" type="number" min="0" placeholder="0"
+                           id="shopDiscPrice-${p.id}" data-field="shopDiscountPrice" data-id="${p.id}"
+                           value="${p.shopDiscountMode==='price' && p.shopDiscountPrice!=null ? Math.round(p.shopDiscountPrice) : ''}">
+                    <span class="discount-unit">₽</span>
+                  </div>
                 </div>
-              </div>
-              <div class="field-block">
-                <label>Цена со скидкой</label>
-                <span class="value-box discount-price-display" id="priceFlowwowDiscDisplay-${p.id}">${c.effectiveFlowwowPrice!=null ? fmtRub(c.effectiveFlowwowPrice) : '—'}</span>
-              </div>
-            </div>
-            <div class="expenses-wrap">
-              <div class="expense-section">
-                <div class="expense-row">
-                  <span class="expense-label" id="baseCommLabel-${p.id}">Фиксированная комиссия с НДС (${fmtPct(c.baseCommissionPct)})</span>
-                  <span class="expense-center"></span>
-                  <span class="expense-value" id="baseCommRub-${p.id}">${fmtRub(c.baseCommissionRub)}</span>
-                </div>
-                <div class="expense-row">
-                  <span class="expense-label">Комиссия за рост с НДС</span>
-                  <span class="expense-center">
-                    <input class="field-num" type="number" min="0" max="100" step="1" value="${p.growthPct}" data-field="growthPct" data-id="${p.id}">
-                    <span class="pct-suffix">,%</span>
-                  </span>
-                  <span class="expense-value" id="growthRub-${p.id}">${fmtRub(c.growthRub)}</span>
-                </div>
-                <div class="expense-row total-row">
-                  <span class="expense-label">Общая комиссия</span>
-                  <span class="expense-center"><span class="expense-value" id="commTotalPct-${p.id}">${fmtPct(c.commGrowthTotalPct)}</span></span>
-                  <span class="expense-value" id="commTotalRub-${p.id}">${fmtRub(c.commGrowthTotalRub)}</span>
-                </div>
-              </div>
-              <div class="expense-section">
-                <div class="expense-row">
-                  <span class="expense-label">Переменная с заказа с НДС (${VARIABLE_PCT}%)</span>
-                  <span class="expense-center"></span>
-                  <span class="expense-value" id="variableRub-${p.id}">${fmtRub(c.variableRub)}</span>
-                </div>
-                <div class="expense-row">
-                  <span class="expense-label">Бонусы клиентам с НДС</span>
-                  <span class="expense-center">
-                    <input class="field-num" type="number" min="0" max="100" step="1" value="${p.bonusPct}" data-field="bonusPct" data-id="${p.id}" ${globalWowpass?'':'disabled'}>
-                    <span class="pct-suffix">,%</span>
-                  </span>
-                  <span class="expense-value" id="bonusRub-${p.id}">${fmtRub(c.bonusRub)}</span>
-                </div>
-                <div class="expense-row">
-                  <span class="expense-label" id="deliveryLabel-${p.id}">Выгодная доставка (${DELIVERY_PACKAGES[globalDelivery].label})</span>
-                  <span class="expense-center"></span>
-                  <span class="expense-value" id="deliveryRub-${p.id}">${fmtRub(c.deliveryRub)}</span>
-                </div>
-              </div>
-              <div class="expense-total-footer">
-                <label>Общая доля расходов</label>
-                <span class="val-emph" id="expensePct-${p.id}">${fmtPct(c.totalExpensePct)}</span>
-                <span class="val-emph" id="expenseRub-${p.id}">${fmtRub(c.totalExpenseRub)}</span>
+                <button class="btn ghost small reset-discount" data-action="resetShopDiscount" data-id="${p.id}"
+                        id="resetShopDisc-${p.id}" title="Сбросить скидку" style="display:${c.shopHasDiscount?'inline-flex':'none'}">✕</button>
               </div>
             </div>
-            <div class="tax-block">
-              <div class="field-block">
-                <label>УСН 6%</label>
-                <span class="computed-val val-emph" id="usn6Flowwow-${p.id}">${fmtRub(c.usn6FlowwowRub)}</span>
+            <div class="field-block">
+              <label>Цена со скидкой</label>
+              <span class="value-box discount-price-display" id="priceShopDiscDisplay-${p.id}">${fmtRub(c.effectiveShopPrice)}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-cell shop"></div>
+        <div class="col-cell shop">
+          <div class="tax-block">
+            <div class="field-block">
+              <label>УСН 6%</label>
+              <span class="computed-val val-emph" id="usn6Own-${p.id}">${fmtRub(c.usn6OwnRub)}</span>
+            </div>
+            <div class="field-block">
+              <label>ПФР 1%</label>
+              <span class="computed-val val-emph" id="pfr1Own-${p.id}">${fmtRub(c.pfr1OwnRub)}</span>
+            </div>
+            <div class="tax-total">
+              <label>Всего налог 7%</label>
+              <span class="val-emph" id="usnOwn-${p.id}">${fmtRub(c.usnOwnRub)}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-cell shop">
+          <div class="totals-line">
+            <div class="totals-item">
+              <label>Продажная цена</label>
+              <span class="val-emph totals-value" id="priceShopTotal-${p.id}">${fmtRub(c.effectiveShopPrice)}</span>
+            </div>
+            <div class="totals-item">
+              <label>Маржа</label>
+              <span class="badge totals-value ${shopClass}" id="marginShop-${p.id}">${fmtPct(c.marginShopPct)}</span>
+            </div>
+            <div class="totals-item">
+              <label>Сумма прибыли</label>
+              <span class="badge big totals-value ${shopClass}" id="profitShop-${p.id}">${fmtRub(c.profitOwnShop)}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-cell shop"></div>
+
+        <div class="col-cell col-label flowwow">Flowwow</div>
+        <div class="col-cell flowwow">
+          <div class="fields-row">
+            <div class="field-block">
+              <label>Себестоимость</label>
+              <span class="value-box" id="costFlowwow-${p.id}">${fmtRub(c.cost)}</span>
+            </div>
+            <div class="field-block">
+              <label>Продажная цена</label>
+              <div class="price-cell">
+                <input class="field-num price-input val-emph-input ${c.useManual?'manual':''}" type="number" min="0" step="1"
+                       id="priceInput-${p.id}" data-field="priceOverride" data-id="${p.id}"
+                       value="${c.priceOnFlowwow!=null ? Math.round(c.priceOnFlowwow) : ''}"
+                       placeholder="${(!c.useManual && c.overLimit) ? 'вручную' : ''}">
+                <button class="btn ghost small reset-price" data-action="resetPrice" data-id="${p.id}"
+                        id="resetBtn-${p.id}" title="Вернуть расчётную цену" style="display:${c.useManual?'inline-flex':'none'}">↺</button>
               </div>
-              <div class="field-block">
-                <label>ПФР 1%</label>
-                <span class="computed-val val-emph" id="pfr1Flowwow-${p.id}">${fmtRub(c.pfr1FlowwowRub)}</span>
-              </div>
-              <div class="tax-total">
-                <label>Всего налог 7%</label>
-                <span class="val-emph" id="usnFlowwow-${p.id}">${fmtRub(c.usnFlowwowRub)}</span>
+              <div class="price-note" id="priceNote-${p.id}">${priceNoteHTML(c)}</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-cell flowwow">
+          <div class="fields-row">
+            <div class="field-block">
+              <label>Скидка</label>
+              <div class="discount-wrap">
+                <div class="discount-stack">
+                  <div class="discount-input-row">
+                    <input class="field-num" type="number" min="0" max="100" placeholder="0"
+                           id="flowwowDiscPct-${p.id}" data-field="flowwowDiscountPct" data-id="${p.id}"
+                           value="${p.flowwowDiscountMode==='pct' && p.flowwowDiscountPct!=null ? p.flowwowDiscountPct : ''}">
+                    <span class="discount-unit">%</span>
+                  </div>
+                  <div class="discount-input-row">
+                    <input class="field-num" type="number" min="0" placeholder="0"
+                           id="flowwowDiscPrice-${p.id}" data-field="flowwowDiscountPrice" data-id="${p.id}"
+                           value="${p.flowwowDiscountMode==='price' && p.flowwowDiscountPrice!=null ? Math.round(p.flowwowDiscountPrice) : ''}">
+                    <span class="discount-unit">₽</span>
+                  </div>
+                </div>
+                <button class="btn ghost small reset-discount" data-action="resetFlowwowDiscount" data-id="${p.id}"
+                        id="resetFlowwowDisc-${p.id}" title="Сбросить скидку" style="display:${p.flowwowDiscountMode?'inline-flex':'none'}">✕</button>
               </div>
             </div>
-            <div class="row-total">
-              <div class="totals-line">
-                <div class="totals-item">
-                  <label>Продажная цена</label>
-                  <span class="val-emph totals-value" id="priceFlowwowTotal-${p.id}">${c.effectiveFlowwowPrice!=null ? fmtRub(c.effectiveFlowwowPrice) : '—'}</span>
-                </div>
-                <div class="totals-item">
-                  <label>Маржа</label>
-                  <span class="badge totals-value ${flowwowClass}" id="marginFlowwow-${p.id}">${fmtPct(c.marginFlowwowPct)}</span>
-                </div>
-                <div class="totals-item">
-                  <label>Сумма прибыли</label>
-                  <span class="badge big totals-value ${flowwowClass}" id="profitFlowwow-${p.id}">${fmtRub(c.profitOnFlowwow)}</span>
-                </div>
+            <div class="field-block">
+              <label>Цена со скидкой</label>
+              <span class="value-box discount-price-display" id="priceFlowwowDiscDisplay-${p.id}">${c.effectiveFlowwowPrice!=null ? fmtRub(c.effectiveFlowwowPrice) : '—'}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-cell flowwow">
+          <div class="expenses-wrap">
+            <div class="expense-section">
+              <div class="expense-row">
+                <span class="expense-label" id="baseCommLabel-${p.id}">Фиксированная комиссия с НДС (${fmtPct(c.baseCommissionPct)})</span>
+                <span class="expense-center"></span>
+                <span class="expense-value" id="baseCommRub-${p.id}">${fmtRub(c.baseCommissionRub)}</span>
               </div>
-              <div class="profit-warn" id="profitBelowShopWarn-${p.id}" style="display:${c.profitBelowShop?'flex':'none'}">
-                ⚠ прибыль на Flowwow ниже, чем в своём магазине, на <span id="profitBelowShopDiff-${p.id}">${fmtRub(c.profitDiffFromShop)}</span>
+              <div class="expense-row">
+                <span class="expense-label">Комиссия за рост с НДС</span>
+                <span class="expense-center">
+                  <input class="field-num" type="number" min="0" max="100" step="1" value="${p.growthPct}" data-field="growthPct" data-id="${p.id}">
+                  <span class="pct-suffix">,%</span>
+                </span>
+                <span class="expense-value" id="growthRub-${p.id}">${fmtRub(c.growthRub)}</span>
+              </div>
+              <div class="expense-row total-row">
+                <span class="expense-label">Общая комиссия</span>
+                <span class="expense-center"><span class="expense-value" id="commTotalPct-${p.id}">${fmtPct(c.commGrowthTotalPct)}</span></span>
+                <span class="expense-value" id="commTotalRub-${p.id}">${fmtRub(c.commGrowthTotalRub)}</span>
               </div>
             </div>
+            <div class="expense-section">
+              <div class="expense-row">
+                <span class="expense-label">Переменная с заказа с НДС (${VARIABLE_PCT}%)</span>
+                <span class="expense-center"></span>
+                <span class="expense-value" id="variableRub-${p.id}">${fmtRub(c.variableRub)}</span>
+              </div>
+              <div class="expense-row">
+                <span class="expense-label">Бонусы клиентам с НДС</span>
+                <span class="expense-center">
+                  <input class="field-num" type="number" min="0" max="100" step="1" value="${p.bonusPct}" data-field="bonusPct" data-id="${p.id}" ${globalWowpass?'':'disabled'}>
+                  <span class="pct-suffix">,%</span>
+                </span>
+                <span class="expense-value" id="bonusRub-${p.id}">${fmtRub(c.bonusRub)}</span>
+              </div>
+              <div class="expense-row">
+                <span class="expense-label" id="deliveryLabel-${p.id}">Выгодная доставка (${DELIVERY_PACKAGES[globalDelivery].label})</span>
+                <span class="expense-center"></span>
+                <span class="expense-value" id="deliveryRub-${p.id}">${fmtRub(c.deliveryRub)}</span>
+              </div>
+            </div>
+            <div class="expense-total-footer">
+              <label>Общая доля расходов</label>
+              <span class="val-emph" id="expensePct-${p.id}">${fmtPct(c.totalExpensePct)}</span>
+              <span class="val-emph" id="expenseRub-${p.id}">${fmtRub(c.totalExpenseRub)}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-cell flowwow">
+          <div class="tax-block">
+            <div class="field-block">
+              <label>УСН 6%</label>
+              <span class="computed-val val-emph" id="usn6Flowwow-${p.id}">${fmtRub(c.usn6FlowwowRub)}</span>
+            </div>
+            <div class="field-block">
+              <label>ПФР 1%</label>
+              <span class="computed-val val-emph" id="pfr1Flowwow-${p.id}">${fmtRub(c.pfr1FlowwowRub)}</span>
+            </div>
+            <div class="tax-total">
+              <label>Всего налог 7%</label>
+              <span class="val-emph" id="usnFlowwow-${p.id}">${fmtRub(c.usnFlowwowRub)}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-cell flowwow">
+          <div class="totals-line">
+            <div class="totals-item">
+              <label>Продажная цена</label>
+              <span class="val-emph totals-value" id="priceFlowwowTotal-${p.id}">${c.effectiveFlowwowPrice!=null ? fmtRub(c.effectiveFlowwowPrice) : '—'}</span>
+            </div>
+            <div class="totals-item">
+              <label>Маржа</label>
+              <span class="badge totals-value ${flowwowClass}" id="marginFlowwow-${p.id}">${fmtPct(c.marginFlowwowPct)}</span>
+            </div>
+            <div class="totals-item">
+              <label>Сумма прибыли</label>
+              <span class="badge big totals-value ${flowwowClass}" id="profitFlowwow-${p.id}">${fmtRub(c.profitOnFlowwow)}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-cell flowwow">
+          <div class="profit-warn" id="profitBelowShopWarn-${p.id}" style="display:${c.profitBelowShop?'flex':'none'}">
+            ⚠ прибыль на Flowwow ниже, чем в своём магазине, на <span id="profitBelowShopDiff-${p.id}">${fmtRub(c.profitDiffFromShop)}</span>
           </div>
         </div>
       </div>
     </div>
     <div class="card-actions">
       <button class="btn ghost small" data-action="open" data-id="${p.id}" title="Открыть расчётный лист">📄 Расчётный лист</button>
-      <button class="btn ghost small danger" data-action="delete" data-id="${p.id}" title="Удалить товар">✕ Удалить</button>
     </div>
   </div>`;
 }
 
 /* ===================== Фильтр / сортировка / рендер списка ===================== */
-function visibleProducts(){
-  let list = products.slice();
-  if(searchTerm.trim()){
-    const t = searchTerm.trim().toLowerCase();
-    list = list.filter(p=>p.name.toLowerCase().includes(t));
-  }
-  if(categoryFilterVal !== 'all'){
-    list = list.filter(p=>p.category===categoryFilterVal);
-  }
-  if(sortVal !== 'none'){
-    const computedMap = new Map(list.map(p=>[p.id, compute(p)]));
-    const dir = sortVal.endsWith('asc') ? 1 : -1;
-    if(sortVal.startsWith('name')){
-      list.sort((a,b)=>dir*a.name.localeCompare(b.name,'ru'));
-    } else if(sortVal.startsWith('price')){
-      list.sort((a,b)=>{
-        const pa = computedMap.get(a.id).priceOnFlowwow ?? -Infinity;
-        const pb = computedMap.get(b.id).priceOnFlowwow ?? -Infinity;
-        return dir*(pa-pb);
-      });
-    } else if(sortVal.startsWith('marginShop')){
-      list.sort((a,b)=>{
-        const ma = computedMap.get(a.id).marginShopPct ?? -Infinity;
-        const mb = computedMap.get(b.id).marginShopPct ?? -Infinity;
-        return dir*(ma-mb);
-      });
-    } else if(sortVal.startsWith('margin')){
-      list.sort((a,b)=>{
-        const ma = computedMap.get(a.id).marginFlowwowPct ?? -Infinity;
-        const mb = computedMap.get(b.id).marginFlowwowPct ?? -Infinity;
-        return dir*(ma-mb);
-      });
-    }
-  }
-  return list;
-}
-
 function renderCards(){
   const container = document.getElementById('cardsList');
-  const list = visibleProducts();
-  if(list.length===0){
-    container.innerHTML = `<div class="empty-state">Ничего не найдено. Измените фильтр или добавьте товар.</div>`;
-  } else {
-    container.innerHTML = list.map(cardHTML).join('');
-  }
+  container.innerHTML = cardHTML(products[0]);
   renderSummary();
 }
 
@@ -1218,10 +1148,7 @@ document.getElementById('cardsList').addEventListener('click', e=>{
   const btn = e.target.closest('button[data-action]');
   if(!btn) return;
   const id = btn.dataset.id;
-  if(btn.dataset.action==='delete'){
-    products = products.filter(p=>p.id!==id);
-    renderCards();
-  } else if(btn.dataset.action==='open'){
+  if(btn.dataset.action==='open'){
     openCalcSheet(id);
   } else if(btn.dataset.action==='resetPrice'){
     const p = products.find(x=>x.id===id);
@@ -1245,30 +1172,9 @@ document.getElementById('cardsList').addEventListener('click', e=>{
   }
 });
 
-document.getElementById('searchInput').addEventListener('input', e=>{
-  searchTerm = e.target.value; renderCards();
-});
-document.getElementById('categoryFilter').addEventListener('change', e=>{
-  categoryFilterVal = e.target.value; renderCards();
-});
-document.getElementById('sortSelect').addEventListener('change', e=>{
-  sortVal = e.target.value; renderCards();
-});
-document.getElementById('addBtn').addEventListener('click', ()=>{
-  const newP = {
-    id: crypto.randomUUID(),
-    name: "Новый товар",
-    category: "Остальные категории",
-    cost: 0, sellPrice: 0, growthPct: 0, bonusPct: 0, delivery: "none",
-    manualPrice:false, priceOverride:null
-  };
-  products.push(newP);
-  renderCards();
-});
-
 /* ===================== CSV экспорт ===================== */
 document.getElementById('exportBtn').addEventListener('click', ()=>{
-  const list = visibleProducts();
+  const list = products;
   const headers = [
     'Товар','Категория','Город (общий)','WowPass (общий)','Доставка (общая)',
     'Себестоимость','Продажная цена','Скидка своего магазина','Цена со скидкой (свой магазин)',
@@ -1446,7 +1352,6 @@ document.getElementById('overlay').addEventListener('click', e=>{
 document.getElementById('globalWowpass').checked = globalWowpass;
 renderGlobalCitySelect();
 renderGlobalDeliverySelect();
-renderCategoryFilter();
 renderCards();
 </script>
 </body>
