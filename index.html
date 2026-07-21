@@ -434,7 +434,8 @@
       <p class="term"><b>Прибыль на Flowwow.</b> = Продажная цена Flowwow − Себестоимость − все расходы площадки (базовая и переменная комиссии, комиссия за рост, бонусы, УСН от продажной цены Flowwow, доставка).</p>
       <p class="term"><b>Маржа.</b> Считается отдельно для своего магазина (прибыль / продажную цену) и отдельно для Flowwow (прибыль / цену на Flowwow) — это разные величины, сравнивайте их только внутри своей колонки.</p>
       <p class="term"><b>Если расходы ≥ 100%.</b> Вывести цену на Flowwow по формуле математически невозможно — приложение покажет предупреждение, и цену нужно ввести вручную.</p>
-      <p class="term"><b>Цена со скидкой.</b> В каждом блоке можно отдельно указать скидку — в % или сразу конечную цену в рублях. Если поле заполнено, все расчёты этого блока (УСН, комиссии, прибыль, маржа) считаются от цены со скидкой вместо обычной продажной цены. Скидка своего магазина и скидка на Flowwow независимы друг от друга.</p>
+      <p class="term"><b>Скидка и сумма со скидкой.</b> В каждом блоке скидку можно задать тремя способами: в % от цены, суммой скидки в рублях (вычитается из цены), либо сразу вписать готовую «Сумму со скидкой» вручную — все три поля взаимосвязаны, последнее изменённое поле становится главным. Если скидка задана, все расчёты этого блока (УСН, комиссии, прибыль, маржа) считаются от суммы со скидкой вместо обычной продажной цены. Скидка своего магазина и скидка на Flowwow независимы друг от друга.</p>
+      <p class="term"><b>Паритет прибыли при недорогих товарах.</b> Если себестоимость товара 2 600 ₽ или меньше, цена на Flowwow считается по точной формуле так, чтобы прибыль на Flowwow была равна прибыли в своём магазине (а не приблизительно, как в общей формуле выше). Для товаров дороже 2 600 ₽ используется обычная формула.</p>
       <p class="term"><b>Общая комиссия.</b> Фиксированная комиссия с НДС и комиссия за рост с НДС показаны рядом и суммируются в «Общую комиссию» (% и ₽) для удобства.</p>
     </div>
   </details>
@@ -544,9 +545,9 @@ let products = [
     id: crypto.randomUUID(),
     name: "Букет «Борщ-микс» XL",
     category: "Съедобные букеты",
-    cost: 1200,
-    sellPrice: 3200,
-    growthPct: 3,
+    cost: 0,
+    sellPrice: 0,
+    growthPct: 0,
     bonusPct: 3,
     manualPrice:false, priceOverride:null
   }
@@ -565,17 +566,27 @@ function compute(p){
   const totalExpensePct = TAX_PCT + baseCommissionPct + growthPct + VARIABLE_PCT + bonusEffectivePct;
   const formulaOverLimit = totalExpensePct >= 100;
   const useManual = !!(p.manualPrice && p.priceOverride!=null && !isNaN(p.priceOverride) && Number(p.priceOverride) > 0);
-  const overLimit = !useManual && formulaOverLimit;
 
-  // Свой магазин: цена со скидкой (если задана) заменяет продажную цену во всех расчётах
+  // Реальная доля расходов (с учётом НДС на комиссии) — нужна для формулы паритета прибыли
+  const nonTaxFraction = (baseCommissionPct + growthPct + VARIABLE_PCT + bonusEffectivePct) / 100;
+  const kReal = (TAX_PCT/100) + nonTaxFraction * (1+VAT);
+
+  // Для товаров с себестоимостью ≤ 2600 ₽ используем точную формулу паритета прибыли
+  // (прибыль на Flowwow = прибыль в своём магазине), а не приближённую формулу по сумме процентов
+  const useParityFormula = cost <= 2600;
+  const formulaOverLimitReal = useParityFormula ? (kReal >= 1) : formulaOverLimit;
+  const overLimit = !useManual && formulaOverLimitReal;
+
+  // Свой магазин: скидка (% / сумма в ₽ / прямой ввод цены со скидкой) заменяет продажную цену во всех расчётах
   let effectiveShopPrice = sellPrice;
   const shopHasDiscount = p.shopDiscountMode==='pct' ? (p.shopDiscountPct!=null && !isNaN(p.shopDiscountPct))
+                          : p.shopDiscountMode==='rub' ? (p.shopDiscountRub!=null && !isNaN(p.shopDiscountRub))
                           : p.shopDiscountMode==='price' ? (p.shopDiscountPrice!=null && !isNaN(p.shopDiscountPrice))
                           : false;
   if(shopHasDiscount){
-    effectiveShopPrice = p.shopDiscountMode==='pct'
-      ? sellPrice * (1 - Number(p.shopDiscountPct)/100)
-      : Number(p.shopDiscountPrice);
+    if(p.shopDiscountMode==='pct') effectiveShopPrice = sellPrice * (1 - Number(p.shopDiscountPct)/100);
+    else if(p.shopDiscountMode==='rub') effectiveShopPrice = sellPrice - Number(p.shopDiscountRub);
+    else effectiveShopPrice = Number(p.shopDiscountPrice);
   }
   const usnOwnRub = effectiveShopPrice * (TAX_PCT/100);
   const usn6OwnRub = effectiveShopPrice * 0.06;
@@ -592,19 +603,25 @@ function compute(p){
   if(useManual){
     priceOnFlowwow = Number(p.priceOverride);
   } else if(!overLimit){
-    priceOnFlowwow = sellPrice / (1 - totalExpensePct/100) + deliveryRub;
+    if(useParityFormula){
+      // Точная формула: цена, при которой прибыль на Flowwow равна прибыли в своём магазине
+      priceOnFlowwow = (sellPrice * (1 - TAX_PCT/100) + deliveryRub) / (1 - kReal);
+    } else {
+      priceOnFlowwow = sellPrice / (1 - totalExpensePct/100) + deliveryRub;
+    }
   }
 
   if(priceOnFlowwow!==null){
-    // Цена со скидкой на Flowwow (если задана) заменяет продажную цену для всех расчётов ниже
+    // Цена со скидкой на Flowwow (% / сумма в ₽ / прямой ввод) заменяет продажную цену для всех расчётов ниже
     effectiveFlowwowPrice = priceOnFlowwow;
     const flowwowHasDiscount = p.flowwowDiscountMode==='pct' ? (p.flowwowDiscountPct!=null && !isNaN(p.flowwowDiscountPct))
+                              : p.flowwowDiscountMode==='rub' ? (p.flowwowDiscountRub!=null && !isNaN(p.flowwowDiscountRub))
                               : p.flowwowDiscountMode==='price' ? (p.flowwowDiscountPrice!=null && !isNaN(p.flowwowDiscountPrice))
                               : false;
     if(flowwowHasDiscount){
-      effectiveFlowwowPrice = p.flowwowDiscountMode==='pct'
-        ? priceOnFlowwow * (1 - Number(p.flowwowDiscountPct)/100)
-        : Number(p.flowwowDiscountPrice);
+      if(p.flowwowDiscountMode==='pct') effectiveFlowwowPrice = priceOnFlowwow * (1 - Number(p.flowwowDiscountPct)/100);
+      else if(p.flowwowDiscountMode==='rub') effectiveFlowwowPrice = priceOnFlowwow - Number(p.flowwowDiscountRub);
+      else effectiveFlowwowPrice = Number(p.flowwowDiscountPrice);
     }
 
     usnFlowwowRub = effectiveFlowwowPrice * (TAX_PCT/100);
@@ -629,7 +646,8 @@ function compute(p){
 
   return {
     meta, baseCommissionPct, bonusEffectivePct, growthPct, cost, sellPrice,
-    totalExpensePct, formulaOverLimit, useManual, overLimit, priceOnFlowwow, effectiveFlowwowPrice,
+    totalExpensePct, formulaOverLimit: formulaOverLimitReal, useManual, overLimit, priceOnFlowwow, effectiveFlowwowPrice,
+    useParityFormula,
     shopHasDiscount, effectiveShopPrice,
     usnOwnRub, usn6OwnRub, pfr1OwnRub, profitOwnShop, marginShopPct,
     usnFlowwowRub, usn6FlowwowRub, pfr1FlowwowRub, baseCommissionRub, growthRub, variableRub, bonusRub, deliveryRub,
@@ -654,6 +672,7 @@ function escapeHtml(s){
 function priceNoteHTML(c){
   if(c.useManual) return 'цена задана вручную';
   if(c.overLimit) return '<span class="warning-text">расходы ≥100%</span>';
+  if(c.useParityFormula) return 'цена рассчитана на паритет прибыли (себестоимость ≤ 2 600 ₽)';
   return '';
 }
 
@@ -791,8 +810,8 @@ function cardHTML(p){
                   </div>
                   <div class="discount-input-row">
                     <input class="field-num" type="number" min="0" placeholder="0"
-                           id="shopDiscPrice-${p.id}" data-field="shopDiscountPrice" data-id="${p.id}"
-                           value="${p.shopDiscountMode==='price' && p.shopDiscountPrice!=null ? Math.round(p.shopDiscountPrice) : ''}">
+                           id="shopDiscRub-${p.id}" data-field="shopDiscountRub" data-id="${p.id}"
+                           value="${p.shopDiscountMode==='rub' && p.shopDiscountRub!=null ? Math.round(p.shopDiscountRub) : ''}">
                     <span class="discount-unit">₽</span>
                   </div>
                 </div>
@@ -801,8 +820,10 @@ function cardHTML(p){
               </div>
             </div>
             <div class="field-block">
-              <label>Цена со скидкой</label>
-              <span class="value-box discount-price-display" id="priceShopDiscDisplay-${p.id}">${fmtRub(c.effectiveShopPrice)}</span>
+              <label>Сумма со скидкой</label>
+              <input class="field-num val-emph-input discount-price-display" type="number" min="0"
+                     id="priceShopDiscDisplay-${p.id}" data-field="shopDiscountPrice" data-id="${p.id}"
+                     value="${Math.round(c.effectiveShopPrice)}">
             </div>
           </div>
         </div>
@@ -876,8 +897,8 @@ function cardHTML(p){
                   </div>
                   <div class="discount-input-row">
                     <input class="field-num" type="number" min="0" placeholder="0"
-                           id="flowwowDiscPrice-${p.id}" data-field="flowwowDiscountPrice" data-id="${p.id}"
-                           value="${p.flowwowDiscountMode==='price' && p.flowwowDiscountPrice!=null ? Math.round(p.flowwowDiscountPrice) : ''}">
+                           id="flowwowDiscRub-${p.id}" data-field="flowwowDiscountRub" data-id="${p.id}"
+                           value="${p.flowwowDiscountMode==='rub' && p.flowwowDiscountRub!=null ? Math.round(p.flowwowDiscountRub) : ''}">
                     <span class="discount-unit">₽</span>
                   </div>
                 </div>
@@ -886,8 +907,10 @@ function cardHTML(p){
               </div>
             </div>
             <div class="field-block">
-              <label>Цена со скидкой</label>
-              <span class="value-box discount-price-display" id="priceFlowwowDiscDisplay-${p.id}">${c.effectiveFlowwowPrice!=null ? fmtRub(c.effectiveFlowwowPrice) : '—'}</span>
+              <label>Сумма со скидкой</label>
+              <input class="field-num val-emph-input discount-price-display" type="number" min="0"
+                     id="priceFlowwowDiscDisplay-${p.id}" data-field="flowwowDiscountPrice" data-id="${p.id}"
+                     value="${c.effectiveFlowwowPrice!=null ? Math.round(c.effectiveFlowwowPrice) : ''}">
             </div>
           </div>
         </div>
@@ -1040,29 +1063,35 @@ function updateCardComputed(id, sourceField){
 
   // Скидка "свой магазин"
   const shopDiscPct = document.getElementById(`shopDiscPct-${id}`);
-  const shopDiscPrice = document.getElementById(`shopDiscPrice-${id}`);
+  const shopDiscRub = document.getElementById(`shopDiscRub-${id}`);
+  const shopDiscPriceInput = document.getElementById(`priceShopDiscDisplay-${id}`);
   if(shopDiscPct && sourceField !== 'shopDiscountPct'){
     shopDiscPct.value = p.shopDiscountMode==='pct' && p.shopDiscountPct!=null ? p.shopDiscountPct : '';
   }
-  if(shopDiscPrice && sourceField !== 'shopDiscountPrice'){
-    shopDiscPrice.value = p.shopDiscountMode==='price' && p.shopDiscountPrice!=null ? Math.round(p.shopDiscountPrice) : '';
+  if(shopDiscRub && sourceField !== 'shopDiscountRub'){
+    shopDiscRub.value = p.shopDiscountMode==='rub' && p.shopDiscountRub!=null ? Math.round(p.shopDiscountRub) : '';
+  }
+  if(shopDiscPriceInput && sourceField !== 'shopDiscountPrice'){
+    shopDiscPriceInput.value = Math.round(c.effectiveShopPrice);
   }
   const resetShopDisc = document.getElementById(`resetShopDisc-${id}`);
   if(resetShopDisc) resetShopDisc.style.display = c.shopHasDiscount ? 'inline-flex' : 'none';
-  setText(`priceShopDiscDisplay-${id}`, fmtRub(c.effectiveShopPrice));
 
   // Скидка Flowwow
   const flowwowDiscPct = document.getElementById(`flowwowDiscPct-${id}`);
-  const flowwowDiscPrice = document.getElementById(`flowwowDiscPrice-${id}`);
+  const flowwowDiscRub = document.getElementById(`flowwowDiscRub-${id}`);
+  const flowwowDiscPriceInput = document.getElementById(`priceFlowwowDiscDisplay-${id}`);
   if(flowwowDiscPct && sourceField !== 'flowwowDiscountPct'){
     flowwowDiscPct.value = p.flowwowDiscountMode==='pct' && p.flowwowDiscountPct!=null ? p.flowwowDiscountPct : '';
   }
-  if(flowwowDiscPrice && sourceField !== 'flowwowDiscountPrice'){
-    flowwowDiscPrice.value = p.flowwowDiscountMode==='price' && p.flowwowDiscountPrice!=null ? Math.round(p.flowwowDiscountPrice) : '';
+  if(flowwowDiscRub && sourceField !== 'flowwowDiscountRub'){
+    flowwowDiscRub.value = p.flowwowDiscountMode==='rub' && p.flowwowDiscountRub!=null ? Math.round(p.flowwowDiscountRub) : '';
+  }
+  if(flowwowDiscPriceInput && sourceField !== 'flowwowDiscountPrice'){
+    flowwowDiscPriceInput.value = c.effectiveFlowwowPrice!=null ? Math.round(c.effectiveFlowwowPrice) : '';
   }
   const resetFlowwowDisc = document.getElementById(`resetFlowwowDisc-${id}`);
   if(resetFlowwowDisc) resetFlowwowDisc.style.display = p.flowwowDiscountMode ? 'inline-flex' : 'none';
-  setText(`priceFlowwowDiscDisplay-${id}`, c.effectiveFlowwowPrice!=null ? fmtRub(c.effectiveFlowwowPrice) : '—');
 
   const psEl = document.getElementById(`profitShop-${id}`);
   if(psEl){ psEl.className = `badge totals-value ${shopClass}`; psEl.textContent = fmtRub(c.profitOwnShop); }
@@ -1115,22 +1144,32 @@ document.getElementById('cardsList').addEventListener('input', e=>{
   }
   if(field==='shopDiscountPct'){
     if(t.value===''){ if(p.shopDiscountMode==='pct'){ p.shopDiscountMode=null; p.shopDiscountPct=null; } }
-    else { p.shopDiscountMode='pct'; p.shopDiscountPct=Number(t.value); p.shopDiscountPrice=null; }
+    else { p.shopDiscountMode='pct'; p.shopDiscountPct=Number(t.value); p.shopDiscountRub=null; p.shopDiscountPrice=null; }
     updateCardComputed(id, 'shopDiscountPct');
   }
+  if(field==='shopDiscountRub'){
+    if(t.value===''){ if(p.shopDiscountMode==='rub'){ p.shopDiscountMode=null; p.shopDiscountRub=null; } }
+    else { p.shopDiscountMode='rub'; p.shopDiscountRub=Number(t.value); p.shopDiscountPct=null; p.shopDiscountPrice=null; }
+    updateCardComputed(id, 'shopDiscountRub');
+  }
   if(field==='shopDiscountPrice'){
-    if(t.value===''){ if(p.shopDiscountMode==='price'){ p.shopDiscountMode=null; p.shopDiscountPrice=null; } }
-    else { p.shopDiscountMode='price'; p.shopDiscountPrice=Number(t.value); p.shopDiscountPct=null; }
+    if(t.value===''){ p.shopDiscountMode=null; p.shopDiscountPrice=null; p.shopDiscountPct=null; p.shopDiscountRub=null; }
+    else { p.shopDiscountMode='price'; p.shopDiscountPrice=Number(t.value); p.shopDiscountPct=null; p.shopDiscountRub=null; }
     updateCardComputed(id, 'shopDiscountPrice');
   }
   if(field==='flowwowDiscountPct'){
     if(t.value===''){ if(p.flowwowDiscountMode==='pct'){ p.flowwowDiscountMode=null; p.flowwowDiscountPct=null; } }
-    else { p.flowwowDiscountMode='pct'; p.flowwowDiscountPct=Number(t.value); p.flowwowDiscountPrice=null; }
+    else { p.flowwowDiscountMode='pct'; p.flowwowDiscountPct=Number(t.value); p.flowwowDiscountRub=null; p.flowwowDiscountPrice=null; }
     updateCardComputed(id, 'flowwowDiscountPct');
   }
+  if(field==='flowwowDiscountRub'){
+    if(t.value===''){ if(p.flowwowDiscountMode==='rub'){ p.flowwowDiscountMode=null; p.flowwowDiscountRub=null; } }
+    else { p.flowwowDiscountMode='rub'; p.flowwowDiscountRub=Number(t.value); p.flowwowDiscountPct=null; p.flowwowDiscountPrice=null; }
+    updateCardComputed(id, 'flowwowDiscountRub');
+  }
   if(field==='flowwowDiscountPrice'){
-    if(t.value===''){ if(p.flowwowDiscountMode==='price'){ p.flowwowDiscountMode=null; p.flowwowDiscountPrice=null; } }
-    else { p.flowwowDiscountMode='price'; p.flowwowDiscountPrice=Number(t.value); p.flowwowDiscountPct=null; }
+    if(t.value===''){ p.flowwowDiscountMode=null; p.flowwowDiscountPrice=null; p.flowwowDiscountPct=null; p.flowwowDiscountRub=null; }
+    else { p.flowwowDiscountMode='price'; p.flowwowDiscountPrice=Number(t.value); p.flowwowDiscountPct=null; p.flowwowDiscountRub=null; }
     updateCardComputed(id, 'flowwowDiscountPrice');
   }
 });
@@ -1166,13 +1205,13 @@ document.getElementById('cardsList').addEventListener('click', e=>{
   } else if(btn.dataset.action==='resetShopDiscount'){
     const p = products.find(x=>x.id===id);
     if(p){
-      p.shopDiscountMode = null; p.shopDiscountPct = null; p.shopDiscountPrice = null;
+      p.shopDiscountMode = null; p.shopDiscountPct = null; p.shopDiscountRub = null; p.shopDiscountPrice = null;
       updateCardComputed(id);
     }
   } else if(btn.dataset.action==='resetFlowwowDiscount'){
     const p = products.find(x=>x.id===id);
     if(p){
-      p.flowwowDiscountMode = null; p.flowwowDiscountPct = null; p.flowwowDiscountPrice = null;
+      p.flowwowDiscountMode = null; p.flowwowDiscountPct = null; p.flowwowDiscountRub = null; p.flowwowDiscountPrice = null;
       updateCardComputed(id);
     }
   }
@@ -1194,8 +1233,8 @@ document.getElementById('exportBtn').addEventListener('click', ()=>{
   ];
   const rows = list.map(p=>{
     const c = compute(p);
-    const shopDiscLabel = p.shopDiscountMode==='pct' ? `${p.shopDiscountPct}%` : (p.shopDiscountMode==='price' ? `${Math.round(p.shopDiscountPrice)} ₽` : '—');
-    const flowwowDiscLabel = p.flowwowDiscountMode==='pct' ? `${p.flowwowDiscountPct}%` : (p.flowwowDiscountMode==='price' ? `${Math.round(p.flowwowDiscountPrice)} ₽` : '—');
+    const shopDiscLabel = p.shopDiscountMode==='pct' ? `${p.shopDiscountPct}%` : (p.shopDiscountMode==='rub' ? `−${Math.round(p.shopDiscountRub)} ₽` : (p.shopDiscountMode==='price' ? `цена ${Math.round(p.shopDiscountPrice)} ₽` : '—'));
+    const flowwowDiscLabel = p.flowwowDiscountMode==='pct' ? `${p.flowwowDiscountPct}%` : (p.flowwowDiscountMode==='rub' ? `−${Math.round(p.flowwowDiscountRub)} ₽` : (p.flowwowDiscountMode==='price' ? `цена ${Math.round(p.flowwowDiscountPrice)} ₽` : '—'));
     return [
       p.name, p.category, globalCity, globalWowpass?'Да':'Нет', DELIVERY_PACKAGES[globalDelivery].label,
       Math.round(c.cost), Math.round(c.sellPrice), shopDiscLabel, Math.round(c.effectiveShopPrice),
