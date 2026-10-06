@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Калькулятор цены на Flowwow — БорщБукет</title>
+<title>Калькулятор цены Flowwow</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
@@ -26,6 +26,7 @@
     --panel-alt:#F1F1F0;
     --panel-shop:#E9F1EF;
     --panel-flowwow:#F3E7E9;
+    --panel-yandex:#EFEFEE;
     --border:#DCDCDA;
     --text:#221A1C;
     --text-muted:#8B8B88;
@@ -94,9 +95,9 @@
   details.explain .term b{color:var(--bordo);font-weight:800;}
 
   .summary-groups{
-    display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px;
+    display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:22px;
   }
-  @media (max-width:700px){ .summary-groups{grid-template-columns:1fr;} }
+  @media (max-width:980px){ .summary-groups{grid-template-columns:1fr;} }
   @media (max-width:480px){ .summary-cards{grid-template-columns:1fr;} }
   .summary-group{
     border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);
@@ -104,12 +105,14 @@
   }
   .summary-group.shop{background:var(--panel);border-color:var(--green);}
   .summary-group.flowwow{background:var(--panel);border-color:var(--bordo);}
+  .summary-group.yandex{background:var(--panel);border-color:var(--gray-dark);}
   .summary-group-title{
     font-family:var(--font-head);font-weight:800;font-size:12px;letter-spacing:.08em;
     text-transform:uppercase;margin-bottom:12px;
   }
   .summary-group.shop .summary-group-title{color:var(--green);}
   .summary-group.flowwow .summary-group-title{color:var(--bordo);}
+  .summary-group.yandex .summary-group-title{color:var(--gray-dark);}
   .summary-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
   .card{
     background:var(--panel-alt);border:1px solid var(--border);border-radius:8px;
@@ -203,20 +206,21 @@
   .card-body{display:block;}
   .fields-area{
     display:grid;
-    grid-template-columns:1fr 1fr;
+    grid-template-columns:1fr 1fr 1fr;
     grid-template-rows:repeat(7,auto);
     grid-auto-flow:column;
     align-items:stretch;
   }
-  @media (max-width:820px){
+  @media (max-width:1080px){
     .fields-area{grid-template-columns:1fr;grid-auto-flow:row;}
   }
 
   .col-cell{padding:16px 18px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;}
   .col-cell.shop{background:var(--panel-shop);border-right:1px solid var(--border);}
-  .col-cell.flowwow{background:var(--panel-flowwow);}
-  @media (max-width:820px){
-    .col-cell.shop{border-right:none;}
+  .col-cell.flowwow{background:var(--panel-flowwow);border-right:1px solid var(--border);}
+  .col-cell.yandex{background:var(--panel-yandex);}
+  @media (max-width:1080px){
+    .col-cell.shop, .col-cell.flowwow{border-right:none;}
   }
   .col-cell.col-label{
     font-family:var(--font-head);font-weight:800;font-size:13px;
@@ -224,7 +228,8 @@
     display:block;
   }
   .col-cell.col-label.shop{background:var(--green);border-right:1px solid var(--green-dark);}
-  .col-cell.col-label.flowwow{background:var(--bordo);}
+  .col-cell.col-label.flowwow{background:var(--bordo);border-right:1px solid var(--bordo-dark);}
+  .col-cell.col-label.yandex{background:var(--gray-dark);}
 
   .fields-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
   .field-block{display:flex;flex-direction:column;gap:5px;width:100%;}
@@ -289,6 +294,17 @@
 
   .col-cell.flowwow .discount-input-row input.field-num{ color:var(--bordo-dark); }
   .col-cell.flowwow .discount-input-row input.field-num:focus{ border-color:var(--bordo); }
+
+  .col-cell.shop .expense-value,
+  .col-cell.shop .expense-total-footer .val-emph{ color:var(--green); }
+  .col-cell.shop .expense-row.total-row .expense-label{ color:var(--green-dark); }
+  .col-cell.shop .expense-row .expense-center input.field-num:focus{ border-color:var(--green); }
+
+  .col-cell.yandex .val-emph,
+  .col-cell.yandex .value-box,
+  .col-cell.yandex .expense-value{ color:var(--gray-dark); }
+  .col-cell.yandex .tax-total{ border-left-color:var(--gray-dark); }
+  .col-cell.yandex .tax-total label{ color:var(--gray-dark); }
 
   /* Налог: УСН 6% + ПФР 1% = Всего налог 7% */
   .tax-block{
@@ -430,13 +446,15 @@
       <p class="term"><b>Переменная комиссия.</b> 2,5%, фиксирована для всех категорий, начисляется вместе с НДС.</p>
       <p class="term"><b>НДС на комиссии площадки.</b> 22% начисляется сверху на комиссии Flowwow (базовую, за рост в выдаче, переменную, бонусы), но не на УСН.</p>
       <p class="term"><b>Выгодная доставка.</b> Фиксированная сумма выбранного пакета (НДС уже включён), задаётся один раз в блоке настроек выше и действует на все товары. Прибавляется к продажной цене Flowwow после расчёта по формуле — и одновременно входит в общие расходы, поэтому не съедает прибыль магазина.</p>
-      <p class="term"><b>Прибыль в своём магазине.</b> = Продажная цена − Себестоимость − УСН (от продажной цены).</p>
+      <p class="term"><b>Обслуживание сайта.</b> В блоке «Свой магазин» можно задать свой % расходов на обслуживание сайта (работа специалистов, контекстная реклама). Сумма в рублях = Продажная цена (или цена со скидкой) × этот %. Вычитается из прибыли своего магазина наряду с себестоимостью и УСН.</p>
+      <p class="term"><b>Прибыль в своём магазине.</b> = Продажная цена − Себестоимость − УСН (от продажной цены) − расходы на обслуживание сайта.</p>
       <p class="term"><b>Прибыль на Flowwow.</b> = Продажная цена Flowwow − Себестоимость − все расходы площадки (базовая и переменная комиссии, комиссия за рост, бонусы, УСН от продажной цены Flowwow, доставка).</p>
       <p class="term"><b>Маржа.</b> Считается отдельно для своего магазина (прибыль / продажную цену) и отдельно для Flowwow (прибыль / цену на Flowwow) — это разные величины, сравнивайте их только внутри своей колонки.</p>
       <p class="term"><b>Если расходы ≥ 100%.</b> Вывести цену на Flowwow по формуле математически невозможно — приложение покажет предупреждение, и цену нужно ввести вручную.</p>
       <p class="term"><b>Скидка и сумма со скидкой.</b> В каждом блоке скидку можно задать тремя способами: в % от цены, суммой скидки в рублях (вычитается из цены), либо сразу вписать готовую «Сумму со скидкой» вручную — все три поля взаимосвязаны, последнее изменённое поле становится главным. Если скидка задана, все расчёты этого блока (УСН, комиссии, прибыль, маржа) считаются от суммы со скидкой вместо обычной продажной цены. Скидка своего магазина и скидка на Flowwow независимы друг от друга.</p>
       <p class="term"><b>Паритет прибыли при недорогих товарах.</b> Если себестоимость товара 2 600 ₽ или меньше, цена на Flowwow считается по точной формуле так, чтобы прибыль на Flowwow была равна прибыли в своём магазине (а не приблизительно, как в общей формуле выше). Для товаров дороже 2 600 ₽ используется обычная формула.</p>
       <p class="term"><b>Общая комиссия.</b> Фиксированная комиссия с НДС и комиссия за рост с НДС показаны рядом и суммируются в «Общую комиссию» (% и ₽) для удобства.</p>
+      <p class="term"><b>Яндекс.Цветы.</b> Отдельный блок для сравнения. Себестоимость берётся из своего магазина, продажная цена — такая же, как итоговая цена на Flowwow (с учётом её скидки, если задана). Комиссия площадки фиксированная — 25,41%, плюс свой УСН 6%+ПФР 1%=7% от продажной цены (как и в двух других блоках). Прибыль = Продажная цена − Себестоимость − комиссия − УСН.</p>
     </div>
   </details>
 
@@ -527,6 +545,7 @@ const DELIVERY_PACKAGES = {
 const TAX_PCT = 7;          // УСН
 const VARIABLE_PCT = 2.5;
 const VAT = 0.22;
+const YANDEX_COMMISSION_PCT = 25.41; // комиссия Яндекс.Цветы
 const DEFAULT_BONUS_CITY_DEP = 3;
 const DEFAULT_BONUS_OTHER = 0;
 
@@ -549,6 +568,7 @@ let products = [
     sellPrice: 0,
     growthPct: 0,
     bonusPct: 3,
+    siteMaintenancePct: 0,
     manualPrice:false, priceOverride:null
   }
 ];
@@ -591,8 +611,13 @@ function compute(p){
   const usnOwnRub = effectiveShopPrice * (TAX_PCT/100);
   const usn6OwnRub = effectiveShopPrice * 0.06;
   const pfr1OwnRub = effectiveShopPrice * 0.01;
-  const profitOwnShop = effectiveShopPrice - cost - usnOwnRub;
+  const siteMaintenancePct = Number(p.siteMaintenancePct)||0;
+  const siteMaintenanceRub = effectiveShopPrice * (siteMaintenancePct/100);
+  const profitOwnShop = effectiveShopPrice - cost - usnOwnRub - siteMaintenanceRub;
   const marginShopPct = effectiveShopPrice !== 0 ? (profitOwnShop / effectiveShopPrice) * 100 : null;
+  // Доля продажной цены своего магазина, которая остаётся после его собственных вычетов
+  // (УСН + обслуживание сайта) — используется ниже в формуле паритета прибыли Flowwow
+  const shopNetFactor = 1 - (TAX_PCT/100) - (siteMaintenancePct/100);
 
   // Flowwow
   let priceOnFlowwow = null, usnFlowwowRub=0, usn6FlowwowRub=0, pfr1FlowwowRub=0, baseCommissionRub=0, growthRub=0, variableRub=0, bonusRub=0,
@@ -604,8 +629,11 @@ function compute(p){
     priceOnFlowwow = Number(p.priceOverride);
   } else if(!overLimit){
     if(useParityFormula){
-      // Точная формула: цена, при которой прибыль на Flowwow равна прибыли в своём магазине
-      priceOnFlowwow = (sellPrice * (1 - TAX_PCT/100) + deliveryRub) / (1 - kReal);
+      // Точная формула: цена, при которой прибыль на Flowwow равна прибыли в своём магазине.
+      // Берём эффективную цену своего магазина (с учётом его скидки) и вычитаем из неё долю,
+      // которую магазин сам теряет на УСН и обслуживании сайта — иначе прибыль на Flowwow
+      // получится выше, чем в своём магазине.
+      priceOnFlowwow = (effectiveShopPrice * shopNetFactor + deliveryRub) / (1 - kReal);
     } else {
       priceOnFlowwow = sellPrice / (1 - totalExpensePct/100) + deliveryRub;
     }
@@ -644,16 +672,36 @@ function compute(p){
   const profitBelowShop = !overLimit && profitOnFlowwow!=null && profitOnFlowwow < profitOwnShop;
   const profitDiffFromShop = profitBelowShop ? (profitOwnShop - profitOnFlowwow) : null;
 
+  // Яндекс.Цветы: себестоимость переносится из своего магазина, продажная цена — такая же, как на Flowwow,
+  // комиссия площадки фиксированная (25,41%), плюс свой УСН (как в своём магазине и на Flowwow)
+  let yandexSalePrice = null, yandexCommissionRub = null, usnYandexRub = null, usn6YandexRub = null, pfr1YandexRub = null,
+      yandexExpenseRub = null, yandexProfit = null, yandexMarginPct = null, yandexProfitBelowShop = false, yandexProfitDiffFromShop = null;
+  if(effectiveFlowwowPrice!=null){
+    yandexSalePrice = effectiveFlowwowPrice;
+    yandexCommissionRub = yandexSalePrice * (YANDEX_COMMISSION_PCT/100);
+    usnYandexRub = yandexSalePrice * (TAX_PCT/100);
+    usn6YandexRub = yandexSalePrice * 0.06;
+    pfr1YandexRub = yandexSalePrice * 0.01;
+    yandexExpenseRub = yandexCommissionRub + usnYandexRub;
+    yandexProfit = yandexSalePrice - cost - yandexExpenseRub;
+    yandexMarginPct = yandexSalePrice !== 0 ? (yandexProfit / yandexSalePrice) * 100 : null;
+    yandexProfitBelowShop = yandexProfit < profitOwnShop;
+    yandexProfitDiffFromShop = yandexProfitBelowShop ? (profitOwnShop - yandexProfit) : null;
+  }
+
   return {
     meta, baseCommissionPct, bonusEffectivePct, growthPct, cost, sellPrice,
     totalExpensePct, formulaOverLimit: formulaOverLimitReal, useManual, overLimit, priceOnFlowwow, effectiveFlowwowPrice,
     useParityFormula,
     shopHasDiscount, effectiveShopPrice,
-    usnOwnRub, usn6OwnRub, pfr1OwnRub, profitOwnShop, marginShopPct,
+    usnOwnRub, usn6OwnRub, pfr1OwnRub, siteMaintenancePct, siteMaintenanceRub, profitOwnShop, marginShopPct,
     usnFlowwowRub, usn6FlowwowRub, pfr1FlowwowRub, baseCommissionRub, growthRub, variableRub, bonusRub, deliveryRub,
     commGrowthTotalPct, commGrowthTotalRub,
     profitBelowShop, profitDiffFromShop,
-    totalExpenseRub, profitOnFlowwow, marginFlowwowPct
+    totalExpenseRub, profitOnFlowwow, marginFlowwowPct,
+    yandexSalePrice, yandexCommissionRub, usnYandexRub, usn6YandexRub, pfr1YandexRub,
+    yandexExpenseRub, yandexProfit, yandexMarginPct,
+    yandexProfitBelowShop, yandexProfitDiffFromShop
   };
 }
 
@@ -690,6 +738,11 @@ function renderSummary(){
   const avgMarginFlowwow = validFlowwow.length ? validFlowwow.reduce((s,c)=>s+c.marginFlowwowPct,0)/validFlowwow.length : null;
   const sumProfitFlowwow = validFlowwow.length ? validFlowwow.reduce((s,c)=>s+c.profitOnFlowwow,0) : null;
 
+  const validYandex = list.filter(c=>c.yandexSalePrice!=null);
+  const avgPriceYandex = validYandex.length ? validYandex.reduce((s,c)=>s+c.yandexSalePrice,0)/validYandex.length : null;
+  const sumExpenseYandex = validYandex.length ? validYandex.reduce((s,c)=>s+c.yandexExpenseRub,0) : null;
+  const sumProfitYandex = validYandex.length ? validYandex.reduce((s,c)=>s+c.yandexProfit,0) : null;
+
   const cls = v => marginClass(v)==='red'?'red':(marginClass(v)==='green'?'green':'neutral');
 
   el.innerHTML = `
@@ -724,6 +777,23 @@ function renderSummary(){
         <div class="card">
           <div class="label">Сумма прибыли</div>
           <div class="value">${fmtRub(sumProfitFlowwow)}</div>
+        </div>
+      </div>
+    </div>
+    <div class="summary-group yandex">
+      <div class="summary-group-title">Яндекс.Цветы</div>
+      <div class="summary-cards">
+        <div class="card">
+          <div class="label">Продажная цена</div>
+          <div class="value">${fmtRub(avgPriceYandex)}</div>
+        </div>
+        <div class="card">
+          <div class="label">Сумма расходов</div>
+          <div class="value">${fmtRub(sumExpenseYandex)}</div>
+        </div>
+        <div class="card">
+          <div class="label">Сумма прибыли</div>
+          <div class="value">${fmtRub(sumProfitYandex)}</div>
         </div>
       </div>
     </div>
@@ -827,7 +897,20 @@ function cardHTML(p){
             </div>
           </div>
         </div>
-        <div class="col-cell shop"></div>
+        <div class="col-cell shop">
+          <div class="expenses-wrap">
+            <div class="expense-section">
+              <div class="expense-row">
+                <span class="expense-label">Обслуживание сайта (специалисты, контекстная реклама)</span>
+                <span class="expense-center">
+                  <input class="field-num" type="number" min="0" max="100" step="1" value="${p.siteMaintenancePct}" data-field="siteMaintenancePct" data-id="${p.id}">
+                  <span class="pct-suffix">,%</span>
+                </span>
+                <span class="expense-value" id="siteMaintenanceRub-${p.id}">${fmtRub(c.siteMaintenanceRub)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="col-cell shop">
           <div class="tax-block">
             <div class="field-block">
@@ -1000,6 +1083,69 @@ function cardHTML(p){
             ⚠ прибыль на Flowwow ниже, чем в своём магазине, на <span id="profitBelowShopDiff-${p.id}">${fmtRub(c.profitDiffFromShop)}</span>
           </div>
         </div>
+
+        <div class="col-cell col-label yandex">Яндекс.Цветы</div>
+        <div class="col-cell yandex">
+          <div class="fields-row">
+            <div class="field-block">
+              <label>Себестоимость</label>
+              <span class="value-box" id="costYandex-${p.id}">${fmtRub(c.cost)}</span>
+            </div>
+            <div class="field-block">
+              <label>Продажная цена</label>
+              <span class="value-box" id="priceYandex-${p.id}">${c.yandexSalePrice!=null ? fmtRub(c.yandexSalePrice) : '—'}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-cell yandex"></div>
+        <div class="col-cell yandex">
+          <div class="expenses-wrap">
+            <div class="expense-section">
+              <div class="expense-row">
+                <span class="expense-label">Комиссия Яндекс.Цветы (${fmtPct(YANDEX_COMMISSION_PCT)})</span>
+                <span class="expense-center"></span>
+                <span class="expense-value" id="yandexCommRub-${p.id}">${c.yandexCommissionRub!=null ? fmtRub(c.yandexCommissionRub) : '—'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-cell yandex">
+          <div class="tax-block">
+            <div class="field-block">
+              <label>УСН 6%</label>
+              <span class="computed-val val-emph" id="usn6Yandex-${p.id}">${c.usn6YandexRub!=null ? fmtRub(c.usn6YandexRub) : '—'}</span>
+            </div>
+            <div class="field-block">
+              <label>ПФР 1%</label>
+              <span class="computed-val val-emph" id="pfr1Yandex-${p.id}">${c.pfr1YandexRub!=null ? fmtRub(c.pfr1YandexRub) : '—'}</span>
+            </div>
+            <div class="tax-total">
+              <label>Всего налог 7%</label>
+              <span class="val-emph" id="usnYandex-${p.id}">${c.usnYandexRub!=null ? fmtRub(c.usnYandexRub) : '—'}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-cell yandex">
+          <div class="totals-line">
+            <div class="totals-item">
+              <label>Продажная цена</label>
+              <span class="badge plain totals-value" id="priceYandexTotal-${p.id}">${c.yandexSalePrice!=null ? fmtRub(c.yandexSalePrice) : '—'}</span>
+            </div>
+            <div class="totals-item">
+              <label>Сумма расходов</label>
+              <span class="badge plain totals-value" id="expenseYandexTotal-${p.id}">${c.yandexExpenseRub!=null ? fmtRub(c.yandexExpenseRub) : '—'}</span>
+            </div>
+            <div class="totals-item">
+              <label>Сумма прибыли</label>
+              <span class="badge totals-value ${marginClass(c.yandexMarginPct)}" id="profitYandex-${p.id}">${c.yandexProfit!=null ? fmtRub(c.yandexProfit) : '—'}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-cell yandex">
+          <div class="profit-warn" id="profitBelowShopWarnYandex-${p.id}" style="display:${c.yandexProfitBelowShop?'flex':'none'}">
+            ⚠ прибыль на Яндекс.Цветы ниже, чем в своём магазине, на <span id="profitBelowShopDiffYandex-${p.id}">${fmtRub(c.yandexProfitDiffFromShop)}</span>
+          </div>
+        </div>
       </div>
     </div>
     <div class="card-actions">
@@ -1039,9 +1185,23 @@ function updateCardComputed(id, sourceField){
   }
 
   setText(`costFlowwow-${id}`, fmtRub(c.cost));
+  setText(`costYandex-${id}`, fmtRub(c.cost));
+  setText(`priceYandex-${id}`, c.yandexSalePrice!=null ? fmtRub(c.yandexSalePrice) : '—');
+  setText(`priceYandexTotal-${id}`, c.yandexSalePrice!=null ? fmtRub(c.yandexSalePrice) : '—');
+  setText(`yandexCommRub-${id}`, c.yandexCommissionRub!=null ? fmtRub(c.yandexCommissionRub) : '—');
+  setText(`usn6Yandex-${id}`, c.usn6YandexRub!=null ? fmtRub(c.usn6YandexRub) : '—');
+  setText(`pfr1Yandex-${id}`, c.pfr1YandexRub!=null ? fmtRub(c.pfr1YandexRub) : '—');
+  setText(`usnYandex-${id}`, c.usnYandexRub!=null ? fmtRub(c.usnYandexRub) : '—');
+  setText(`expenseYandexTotal-${id}`, c.yandexExpenseRub!=null ? fmtRub(c.yandexExpenseRub) : '—');
+  const pyEl = document.getElementById(`profitYandex-${id}`);
+  if(pyEl){ pyEl.className = `badge totals-value ${marginClass(c.yandexMarginPct)}`; pyEl.textContent = c.yandexProfit!=null ? fmtRub(c.yandexProfit) : '—'; }
+  const profitWarnYandex = document.getElementById(`profitBelowShopWarnYandex-${id}`);
+  if(profitWarnYandex) profitWarnYandex.style.display = c.yandexProfitBelowShop ? 'flex' : 'none';
+  setText(`profitBelowShopDiffYandex-${id}`, fmtRub(c.yandexProfitDiffFromShop));
   setText(`usnOwn-${id}`, fmtRub(c.usnOwnRub));
   setText(`usn6Own-${id}`, fmtRub(c.usn6OwnRub));
   setText(`pfr1Own-${id}`, fmtRub(c.pfr1OwnRub));
+  setText(`siteMaintenanceRub-${id}`, fmtRub(c.siteMaintenanceRub));
   setText(`usnFlowwow-${id}`, fmtRub(c.usnFlowwowRub));
   setText(`usn6Flowwow-${id}`, fmtRub(c.usn6FlowwowRub));
   setText(`pfr1Flowwow-${id}`, fmtRub(c.pfr1FlowwowRub));
@@ -1128,7 +1288,7 @@ document.getElementById('cardsList').addEventListener('input', e=>{
     p[field] = t.value === '' ? 0 : Number(t.value);
     updateCardComputed(id, field);
   }
-  if(['growthPct','bonusPct'].includes(field)){
+  if(['growthPct','bonusPct','siteMaintenancePct'].includes(field)){
     p[field] = t.value === '' ? 0 : Math.round(Number(t.value));
     updateCardComputed(id, field);
   }
@@ -1184,7 +1344,7 @@ document.getElementById('cardsList').addEventListener('change', e=>{
   if(field==='category'){
     p.category = t.value;
     renderCards();
-  } else if(['growthPct','bonusPct'].includes(field)){
+  } else if(['growthPct','bonusPct','siteMaintenancePct'].includes(field)){
     t.value = p[field];
   }
 });
@@ -1223,13 +1383,14 @@ document.getElementById('exportBtn').addEventListener('click', ()=>{
   const headers = [
     'Товар','Категория','Город (общий)','WowPass (общий)','Доставка (общая)',
     'Себестоимость','Продажная цена','Скидка своего магазина','Цена со скидкой (свой магазин)',
-    'УСН свой магазин ₽','Прибыль в своём магазине','Маржа (свой магазин) %',
+    'УСН свой магазин ₽','Обслуживание сайта %','Обслуживание сайта ₽','Прибыль в своём магазине','Маржа (свой магазин) %',
     'Продажная цена Flowwow','Цена задана вручную','Скидка Flowwow','Цена со скидкой (Flowwow)',
     'Фиксированная комиссия %','Фиксированная комиссия ₽',
     'Комиссия за рост %','Комиссия за рост ₽','Общая комиссия %','Общая комиссия ₽',
     'Переменная с заказа %','Переменная с заказа ₽','Бонусы %','Бонусы ₽',
     'Доставка ₽','УСН Flowwow ₽','Общая доля расходов %','Общая доля расходов ₽',
-    'Прибыль на Flowwow','Маржа (Flowwow) %'
+    'Прибыль на Flowwow','Маржа (Flowwow) %',
+    'Продажная цена Яндекс.Цветы','Комиссия Яндекс.Цветы %','Комиссия Яндекс.Цветы ₽','УСН Яндекс.Цветы ₽','Сумма расходов Яндекс.Цветы','Прибыль на Яндекс.Цветы','Маржа (Яндекс.Цветы) %'
   ];
   const rows = list.map(p=>{
     const c = compute(p);
@@ -1238,7 +1399,7 @@ document.getElementById('exportBtn').addEventListener('click', ()=>{
     return [
       p.name, p.category, globalCity, globalWowpass?'Да':'Нет', DELIVERY_PACKAGES[globalDelivery].label,
       Math.round(c.cost), Math.round(c.sellPrice), shopDiscLabel, Math.round(c.effectiveShopPrice),
-      Math.round(c.usnOwnRub), Math.round(c.profitOwnShop), Math.round(c.marginShopPct*10)/10,
+      Math.round(c.usnOwnRub), c.siteMaintenancePct, Math.round(c.siteMaintenanceRub), Math.round(c.profitOwnShop), Math.round(c.marginShopPct*10)/10,
       c.overLimit ? 'расходы ≥100%' : Math.round(c.priceOnFlowwow),
       c.useManual ? 'Да' : 'Нет',
       flowwowDiscLabel, c.overLimit ? '—' : Math.round(c.effectiveFlowwowPrice),
@@ -1252,7 +1413,14 @@ document.getElementById('exportBtn').addEventListener('click', ()=>{
       c.overLimit ? '—' : (Math.round(c.totalExpensePct*10)/10),
       c.overLimit ? '—' : Math.round(c.totalExpenseRub),
       c.overLimit ? '—' : Math.round(c.profitOnFlowwow),
-      c.overLimit ? '—' : (Math.round(c.marginFlowwowPct*10)/10)
+      c.overLimit ? '—' : (Math.round(c.marginFlowwowPct*10)/10),
+      c.yandexSalePrice!=null ? Math.round(c.yandexSalePrice) : '—',
+      YANDEX_COMMISSION_PCT,
+      c.yandexCommissionRub!=null ? Math.round(c.yandexCommissionRub) : '—',
+      c.usnYandexRub!=null ? Math.round(c.usnYandexRub) : '—',
+      c.yandexExpenseRub!=null ? Math.round(c.yandexExpenseRub) : '—',
+      c.yandexProfit!=null ? Math.round(c.yandexProfit) : '—',
+      c.yandexMarginPct!=null ? (Math.round(c.yandexMarginPct*10)/10) : '—'
     ];
   });
   const csv = [headers, ...rows].map(r=>r.map(v=>{
@@ -1298,13 +1466,14 @@ function openCalcSheet(id){
         <div class="line"><div><div class="lname">УСН 6%</div></div><span class="lval">${fmtRub(c.usn6OwnRub)}</span></div>
         <div class="line"><div><div class="lname">ПФР 1%</div></div><span class="lval">${fmtRub(c.pfr1OwnRub)}</span></div>
         <div class="line"><div><div class="lname">Всего налог 7%</div><div class="lformula">= ${c.shopHasDiscount?'Цена со скидкой':'Продажная цена'} × 7%</div></div><span class="lval">${fmtRub(c.usnOwnRub)}</span></div>
+        <div class="line"><div><div class="lname">Обслуживание сайта (специалисты, контекстная реклама), ${fmtPct(c.siteMaintenancePct)}</div><div class="lformula">= ${c.shopHasDiscount?'Цена со скидкой':'Продажная цена'} × ${fmtPct(c.siteMaintenancePct)}</div></div><span class="lval">${fmtRub(c.siteMaintenanceRub)}</span></div>
         <hr class="divider">
         <div class="final-line">
           <span class="lname">Прибыль в своём магазине</span>
           <span class="badge big ${shopClass}">${fmtRub(c.profitOwnShop)}</span>
         </div>
         <div class="line"><span class="lname">Маржа (свой магазин)</span><span class="badge ${shopClass}">${fmtPct(c.marginShopPct)}</span></div>
-        <div class="lformula">Прибыль = ${c.shopHasDiscount?'Цена со скидкой':'Продажная цена'} − Себестоимость − УСН</div>
+        <div class="lformula">Прибыль = ${c.shopHasDiscount?'Цена со скидкой':'Продажная цена'} − Себестоимость − УСН − расходы на обслуживание сайта</div>
       </div>
 
       <div class="modal-section">
@@ -1317,7 +1486,9 @@ function openCalcSheet(id){
              </div>
              <div class="lformula">${c.useManual
                 ? 'Цена задана вручную — комиссии и расходы ниже пересчитаны относительно этой цены'
-                : `= Продажная цена / (1 − Общая доля расходов% / 100) + Выгодная доставка = ${fmtRub(c.sellPrice)} / (1 − ${fmtPct(c.totalExpensePct)}/100) + ${fmtRub(c.deliveryRub)}`}</div>`
+                : c.useParityFormula
+                  ? `Цена рассчитана на паритет прибыли (себестоимость ≤ 2 600 ₽): прибыль на Flowwow приравнена к прибыли в своём магазине с учётом УСН и обслуживания сайта.`
+                  : `= Продажная цена / (1 − Общая доля расходов% / 100) + Выгодная доставка = ${fmtRub(c.sellPrice)} / (1 − ${fmtPct(c.totalExpensePct)}/100) + ${fmtRub(c.deliveryRub)}`}</div>`
         }
       </div>
 
@@ -1375,6 +1546,26 @@ function openCalcSheet(id){
         <div class="line"><span class="lname">Маржа (Flowwow)</span><span class="badge ${flowwowClass}">${fmtPct(c.marginFlowwowPct)}</span></div>
         <div class="lformula">Прибыль = ${p.flowwowDiscountMode?'Цена со скидкой':'Продажная цена Flowwow'} − Себестоимость − все расходы площадки (включая УСН)</div>
         ${c.profitBelowShop ? `<div class="warning-text" style="margin-top:8px;">⚠ Прибыль на Flowwow ниже, чем в своём магазине, на ${fmtRub(c.profitDiffFromShop)}</div>` : ''}
+      </div>` : ''}
+
+      ${c.yandexSalePrice!=null ? `
+      <div class="modal-section">
+        <h3>Яндекс.Цветы — итог</h3>
+        <div class="line"><span class="lname">Себестоимость</span><span class="lval">${fmtRub(c.cost)}</span></div>
+        <div class="line"><span class="lname">Продажная цена (как на Flowwow)</span><span class="lval">${fmtRub(c.yandexSalePrice)}</span></div>
+        <div class="line"><div><div class="lname">Комиссия Яндекс.Цветы (${fmtPct(YANDEX_COMMISSION_PCT)})</div><div class="lformula">= Продажная цена × ${fmtPct(YANDEX_COMMISSION_PCT)}</div></div><span class="lval">${fmtRub(c.yandexCommissionRub)}</span></div>
+        <div class="line"><div><div class="lname">УСН 6%</div></div><span class="lval">${fmtRub(c.usn6YandexRub)}</span></div>
+        <div class="line"><div><div class="lname">ПФР 1%</div></div><span class="lval">${fmtRub(c.pfr1YandexRub)}</span></div>
+        <div class="line"><div><div class="lname">Всего налог 7%</div><div class="lformula">= Продажная цена × 7%</div></div><span class="lval">${fmtRub(c.usnYandexRub)}</span></div>
+        <hr class="divider">
+        <div class="line"><span class="lname">Сумма расходов (комиссия + налог)</span><span class="lval">${fmtRub(c.yandexExpenseRub)}</span></div>
+        <div class="final-line">
+          <span class="lname">Прибыль на Яндекс.Цветы</span>
+          <span class="badge big ${marginClass(c.yandexMarginPct)}">${fmtRub(c.yandexProfit)}</span>
+        </div>
+        <div class="line"><span class="lname">Маржа (Яндекс.Цветы)</span><span class="badge ${marginClass(c.yandexMarginPct)}">${fmtPct(c.yandexMarginPct)}</span></div>
+        <div class="lformula">Прибыль = Продажная цена − Себестоимость − комиссия Яндекс.Цветы − УСН</div>
+        ${c.yandexProfitBelowShop ? `<div class="warning-text" style="margin-top:8px;">⚠ Прибыль на Яндекс.Цветы ниже, чем в своём магазине, на ${fmtRub(c.yandexProfitDiffFromShop)}</div>` : ''}
       </div>` : ''}
     </div>
     <div class="modal-actions">
